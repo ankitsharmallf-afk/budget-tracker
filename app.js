@@ -1,6 +1,6 @@
 // ============================================================
-// Ledger — budget tracker app logic
-// Uses Firebase Auth (email/password) + Firestore.
+// Logic for ledger.html only.
+// Requires a signed-in user — bounces back to login.html otherwise.
 // Data model: budgets/{uid}/transactions/{docId}
 //   { description, amount, type: "income"|"expense", category, date: "YYYY-MM-DD", createdAt }
 // ============================================================
@@ -9,11 +9,6 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ---------- Element refs ----------
-const loginScreen = document.getElementById('login-screen');
-const appScreen = document.getElementById('app-screen');
-const loginForm = document.getElementById('login-form');
-const loginError = document.getElementById('login-error');
-const loginBtn = document.getElementById('login-btn');
 const userEmailEl = document.getElementById('user-email');
 const signoutBtn = document.getElementById('signout-btn');
 
@@ -42,60 +37,22 @@ let allTransactions = [];
 // ---------- Helpers ----------
 const money = (n) => (n < 0 ? '-' : '') + '$' + Math.abs(n).toFixed(2);
 const todayISO = () => new Date().toISOString().slice(0, 10);
-const monthKeyOf = (dateStr) => dateStr.slice(0, 7); // "YYYY-MM"
+const monthKeyOf = (dateStr) => dateStr.slice(0, 7);
 
-function setDefaultMonth() {
-  monthSelect.value = todayISO().slice(0, 7);
-}
-
-// ---------- Auth state ----------
+// ---------- Require auth ----------
 auth.onAuthStateChanged((user) => {
-  if (user) {
-    loginScreen.hidden = true;
-    appScreen.hidden = false;
-    userEmailEl.textContent = user.email;
-    entryDate.value = todayISO();
-    setDefaultMonth();
-    subscribeToTransactions(user.uid);
-  } else {
-    appScreen.hidden = true;
-    loginScreen.hidden = false;
-    if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
-    allTransactions = [];
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
   }
+  userEmailEl.textContent = user.email;
+  entryDate.value = todayISO();
+  monthSelect.value = todayISO().slice(0, 7);
+  subscribeToTransactions(user.uid);
 });
-
-// ---------- Login ----------
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  loginError.hidden = true;
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'Signing in…';
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-  } catch (err) {
-    loginError.textContent = friendlyAuthError(err);
-    loginError.hidden = false;
-  } finally {
-    loginBtn.disabled = false;
-    loginBtn.textContent = 'Sign in';
-  }
-});
-
-function friendlyAuthError(err) {
-  switch (err.code) {
-    case 'auth/invalid-email': return 'That email address doesn\u2019t look right.';
-    case 'auth/user-not-found':
-    case 'auth/wrong-password':
-    case 'auth/invalid-credential': return 'Email or password is incorrect.';
-    case 'auth/too-many-requests': return 'Too many attempts. Try again in a bit.';
-    default: return 'Couldn\u2019t sign in. Please try again.';
-  }
-}
 
 signoutBtn.addEventListener('click', () => auth.signOut());
+// onAuthStateChanged above handles the redirect to login.html after sign-out
 
 // ---------- Type toggle ----------
 function setType(type) {
@@ -168,7 +125,7 @@ async function deleteEntry(id) {
 monthSelect.addEventListener('change', render);
 
 function render() {
-  const month = monthSelect.value; // "YYYY-MM"
+  const month = monthSelect.value;
   const monthTx = allTransactions.filter((t) => monthKeyOf(t.date) === month);
 
   const income = monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);

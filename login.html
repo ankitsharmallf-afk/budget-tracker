@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Ledger</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📒</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<section id="login-screen" class="screen">
+  <div class="login-card">
+    <div class="brand">
+      <span class="brand-mark">§</span>
+      <span class="brand-name">Ledger</span>
+    </div>
+    <p class="login-sub">Sign in with the account you were given access with.</p>
+
+    <form id="login-form" autocomplete="on">
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="login-email" required autocomplete="username" placeholder="you@example.com">
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••">
+      </label>
+      <button type="submit" class="btn-primary" id="login-btn">Sign in</button>
+      <p class="login-error" id="login-error" hidden></p>
+    </form>
+
+    <p class="login-footnote">Accounts are created by the ledger owner in the Firebase console — there's no public sign-up here on purpose.</p>
+  </div>
+</section>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>
